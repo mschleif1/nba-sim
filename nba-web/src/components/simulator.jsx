@@ -1,20 +1,33 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import games from "./games";
 import * as JSOG from "jsog";
 import Standings from "./standings";
 import Team from "./team";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
-import red from "@material-ui/core/colors/purple";
-import blue from "@material-ui/core/colors/green";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Button from "@material-ui/core/Button";
 
+export const GAMES = JSOG.decode(games);
+
 const Simulator = () => {
-  const GAMES = JSOG.decode(games);
+  const [currentTeams, setCurrentTeams] = useState([]);
+  const [permanentTeams, setPermanentTeams] = useState([]);
   let teams = [];
 
-  //Filter through teams by each game. Check to see if the visitor is contained
+  useEffect(() => {
+    initialize();
+    console.log("i am in the useEffect to change currentTeams");
+    setCurrentTeams([...teams]);
+    console.log(currentTeams);
+    setPermanentTeams(teams);
+  }, []);
+  console.log(permanentTeams);
+
+  useEffect(() => {
+    console.log("currentTeams changed!");
+  }, [currentTeams]);
+
+  // Filter through teams by each game. Check to see if the visitor is contained
   //by one of the team objects
 
   const containsTeam = (name) => {
@@ -34,15 +47,6 @@ const Simulator = () => {
     }
     return -1;
   };
-
-  //Creates list of team objs
-  GAMES.data.map((game) => {
-    if (!containsTeam(game.Visitor.toLowerCase())) {
-      teams.push(new Team(game.Visitor.toLowerCase()));
-    }
-  });
-
-  console.log(GAMES);
 
   const calculateElo = (winTeam, loseTeam) => {
     const probWinTeam =
@@ -71,9 +75,18 @@ const Simulator = () => {
     }
   };
 
-  GAMES.data.map((game) => {
-    playGame(game);
-  });
+  const initialize = () => {
+    for (let i = 0; i < GAMES.data.length; i++) {
+      if (!containsTeam(GAMES.data[i].Visitor.toLowerCase())) {
+        const conf = GAMES.data[i].Vconf === "w" ? "w" : "e";
+        teams.push(new Team(GAMES.data[i].Visitor.toLowerCase(), conf));
+      }
+    }
+    for (let i = 0; i < GAMES.data.length; i++) {
+      playGame(GAMES.data[i]);
+    }
+  };
+  //works if you dont include this in the useeffect
 
   const theme = createMuiTheme({
     palette: {
@@ -89,6 +102,22 @@ const Simulator = () => {
     },
   });
 
+  const handleConf = (conf) => {
+    let newTeams = [];
+    if (conf === "w") {
+      newTeams = permanentTeams.filter((team) => {
+        return team.conf === "w";
+      });
+    } else if (conf == "e") {
+      newTeams = permanentTeams.filter((team) => {
+        return team.conf === "e";
+      });
+    } else {
+      newTeams = permanentTeams;
+    }
+    setCurrentTeams(newTeams);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <ButtonGroup
@@ -96,11 +125,29 @@ const Simulator = () => {
         color="primary"
         aria-label="large outlined primary button group"
       >
-        <Button>East</Button>
-        <Button>West</Button>
-        <Button>NBA</Button>
+        <Button
+          onClick={() => {
+            handleConf("e");
+          }}
+        >
+          East
+        </Button>
+        <Button
+          onClick={() => {
+            handleConf("w");
+          }}
+        >
+          West
+        </Button>
+        <Button
+          onClick={() => {
+            handleConf("all");
+          }}
+        >
+          NBA
+        </Button>
       </ButtonGroup>
-      <Standings teams={teams} />;
+      <Standings teams={currentTeams} findTeam={findTeam} games={GAMES.data} />;
     </ThemeProvider>
   );
 };
