@@ -8,28 +8,10 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import { findTeam } from "../algorithms/createData";
 
 const Standings = ({ teams, games }) => {
-  const [initialized, setInitialized] = useState(false);
-  const [rows, setRows] = useState([]);
-
-  useEffect(() => {
-    setInitialized(true);
-    console.log("when did i get here");
-  }, []);
-
-  console.log(teams);
-
-  useEffect(
-    () => {
-      if (initialized === true) {
-        sort();
-        console.log("checking to see if initialized is true;");
-      }
-    },
-    [initialized],
-    [teams]
-  );
+  console.log("the", teams);
 
   const StyledTableCell = withStyles((theme) => ({
     head: {
@@ -87,6 +69,7 @@ const Standings = ({ teams, games }) => {
   };
 
   const quickSortRank = (list) => {
+    debugger;
     if (list.length <= 1) {
       return list;
     } else {
@@ -104,13 +87,19 @@ const Standings = ({ teams, games }) => {
           right.push(list[i]);
         }
       }
-      return newArray.concat(quickSortRank(left), pivot, quickSortRank(right));
+      return newArray.concat([...quickSortRank(left)], pivot, [
+        ...quickSortRank(right),
+      ]);
     }
   };
 
   const sort = () => {
+    debugger;
     let rowList = [];
-    const newList = quickSortRank(teams).reverse();
+    console.log("the before", teams);
+    let temp = [...teams];
+    const newList = quickSortRank(temp).reverse();
+    console.log("the After", teams);
     const DECTOSHOW = 2;
     for (let i = 0; i < newList.length; i++) {
       const team = newList[i];
@@ -124,7 +113,7 @@ const Standings = ({ teams, games }) => {
       );
       rowList.push(newRow);
     }
-    setRows(rowList);
+    return rowList;
   };
 
   const useStyles = makeStyles({
@@ -150,13 +139,12 @@ const Standings = ({ teams, games }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {sort().map((row) => (
               <StyledTableRow key={row.team}>
                 <StyledTableCell component="th" scope="row">
                   {row.rank}
                 </StyledTableCell>
                 <StyledTableCell align="right">{row.team}</StyledTableCell>
-
                 <StyledTableCell align="right">{row.wins}</StyledTableCell>
                 <StyledTableCell align="right">{row.losses}</StyledTableCell>
                 <StyledTableCell align="right">{row.winpct}</StyledTableCell>
