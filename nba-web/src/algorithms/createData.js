@@ -10,6 +10,63 @@ export const initialize = () => {
   return filledTeams;
 };
 
+export const quickSortRank = (list) => {
+  if (list.length <= 1) {
+    return list;
+  } else {
+    let left = [];
+    let right = [];
+    let newArray = [];
+    let pivot = list.pop();
+    const length = list.length;
+
+    for (let i = 0; i < length; i++) {
+      //if the team is lower in the standings, push it to the right.
+      if (compare(list[i], pivot) === 0) {
+        right.push(list[i]);
+      } else {
+        left.push(list[i]);
+      }
+    }
+    return newArray.concat([...quickSortRank(left)], pivot, [
+      ...quickSortRank(right),
+    ]);
+  }
+};
+
+const compare = (t1, t2) => {
+  if (t1.winPct === t2.winPct) {
+    return headToHeadWinner(t1, t2) === 1 ? 1 : 0;
+  } else {
+    return t1.winPct > t2.winPct ? 1 : 0;
+  }
+};
+
+const headToHeadWinner = (t1, t2) => {
+  let t1Wins = 0,
+    t2Wins = 0;
+  GAMES.data.map((game) => {
+    if (
+      game.Visitor.toLowerCase() === t1.teamName &&
+      game.Home.toLowerCase() === t2.teamName
+    ) {
+      if (game.VPTS > game.HPTS) {
+        t1Wins++;
+      } else t2Wins++;
+    } else if (
+      game.Visitor.toLowerCase() === t2.teamName &&
+      game.Home.toLowerCase() === t1.teamName
+    ) {
+      if (game.VPTS > game.HPTS) {
+        t2Wins++;
+      } else {
+        t1Wins++;
+      }
+    }
+  });
+  return t1Wins > t2Wins ? 1 : 0;
+};
+
 const createTeamList = () => {
   let teams = [];
   for (let i = 0; i < GAMES.data.length; i++) {
@@ -22,8 +79,6 @@ const createTeamList = () => {
 };
 
 const setStats = (teams) => {
-  console.log("how many times did i get in here;");
-
   for (let i = 0; i < GAMES.data.length; i++) {
     playGame(teams, GAMES.data[i]);
   }
@@ -73,4 +128,17 @@ const playGame = (teams, game) => {
   } else {
     updateStats(homeTeam, awayTeam);
   }
+};
+
+export const separateByConf = (teams) => {
+  let west = [];
+  let east = [];
+  teams.forEach((team) => {
+    if (team.conf === "w") {
+      west.push(team);
+    } else {
+      east.push(team);
+    }
+  });
+  return [east, west];
 };

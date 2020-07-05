@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import games from "./games";
 import * as JSOG from "jsog";
 import Standings from "./standings";
+import Predictions from "./predictions";
 import Team from "./team";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
@@ -9,23 +10,18 @@ import Button from "@material-ui/core/Button";
 import { initialize } from "../algorithms/createData";
 
 export const GAMES = JSOG.decode(games);
-const TEAMS = initialize();
 
 const Simulator = () => {
-  const [currentTeams, setCurrentTeams] = useState([]);
+  const TEAMS = initialize();
+  const [currentTeams, setCurrentTeams] = useState([...TEAMS]);
 
-  useEffect(() => {
-    setCurrentTeams(TEAMS);
-  }, []);
+  // useEffect(() => {
+  //   setCurrentTeams(TEAMS);
+  // }, []);
 
   useEffect(() => {
     console.log("currentTeams changed!");
   }, [currentTeams]);
-
-  // Filter through teams by each game. Check to see if the visitor is contained
-  //by one of the team objects
-
-  //works if you dont include this in the useeffect
 
   const theme = createMuiTheme({
     palette: {
@@ -69,7 +65,7 @@ const Simulator = () => {
             handleConf("e");
           }}
         >
-          bg East
+          East
         </Button>
         <Button
           onClick={() => {
@@ -86,7 +82,8 @@ const Simulator = () => {
           NBA
         </Button>
       </ButtonGroup>
-      <Standings teams={currentTeams} games={GAMES.data} />
+      <Standings teams={currentTeams} />
+      <Predictions />
     </ThemeProvider>
   );
 };
